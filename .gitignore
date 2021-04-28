@@ -18,5 +18,9 @@ main.js
 # Exclude sourcemaps
 *.js.map
 
+# obsidian
+data.json
+
+
 # macOS
 .DS_Store
