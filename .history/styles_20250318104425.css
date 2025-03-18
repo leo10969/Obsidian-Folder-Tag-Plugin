@@ -1,0 +1,48 @@
+/* タグ選択モーダルのスタイル */
+.tag-selection-container {
+    padding: 20px;
+}
+
+.tag-selection-container h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.tag-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.tag-item {
+    display: flex;
+    align-items: center;
+    padding: 5px 0;
+}
+
+.tag-item span {
+    margin-right: 10px;
+}
+
+.input-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.input-container input {
+    flex: 1;
+}
+
+.input-container button {
+    padding: 0 10px;
+}
+
+/* 通知のスタイル */
+.folder-tag-plugin-notice {
+    color: var(--text-normal);
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    padding: 8px;
+    margin: 4px 0;
+} 

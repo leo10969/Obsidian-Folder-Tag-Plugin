@@ -1,0 +1,19 @@
+{
+    "folderMatchingTags": "フォルダと一致するタグ（1つまで選択可能）",
+    "otherTags": "その他のタグ（複数選択可能）",
+    "newTag": "新規タグ",
+    "enterNewTag": "新しいタグを入力",
+    "add": "追加",
+    "createFolderOption": "タグと同じ名前のフォルダを作成する",
+    "applyTags": "タグを適用",
+    "createdTagAndFolder": "タグ #{tag} とフォルダ {folder} を作成しました",
+    "failedToCreateFolder": "フォルダ {folder} の作成に失敗しました",
+    "addedTag": "タグ #{tag} を追加しました",
+    "movedFileToFolder": "ファイルを #{tag} フォルダに移動しました",
+    "newFileCreated": "新規ファイル作成: {path}\nフォルダ: {folder}",
+    "addedTags": "タグ {tags} を追加しました",
+    "noFileOpen": "現在開いているファイルがありません",
+    "noFileInFolder": "フォルダ内に開いているファイルがありません",
+    "addedFolderTags": "{processed} 個のファイルにフォルダタグを追加しました（{skipped} 個のファイルは既にタグを持っています）",
+    "foundFolders": "ボルト内に {count} 個のフォルダが見つかりました:\n{folders}"
+} 

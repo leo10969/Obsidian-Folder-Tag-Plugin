@@ -1,0 +1,10 @@
+{
+	"id": "folder-tag-plugin",
+	"name": "Folder Tag Plugin",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Automatically adds folder names as tags to files and provides commands to manage folder tags.",
+	"author": "Your Name",
+	"authorUrl": "",
+	"isDesktopOnly": false
+} 

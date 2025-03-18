@@ -10,18 +10,6 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	mySetting: 'default'
 }
 
-// i18n helper function
-function t(key: string, params: Record<string, string> = {}): string {
-	const i18n = (window as any).i18n;
-	if (!i18n) return key;
-	
-	let text = i18n.t(`folder-tag-plugin:${key}`);
-	Object.entries(params).forEach(([key, value]) => {
-		text = text.replace(`{${key}}`, value);
-	});
-	return text;
-}
-
 // タグ選択モーダル
 class TagSelectionModal extends Modal {
 	selectedFolderTag: string | null = null;
@@ -37,7 +25,7 @@ class TagSelectionModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 
-		// Get existing tags
+		// 既存のタグを取得
 		const existingTags = new Set<string>();
 		this.app.vault.getAllLoadedFiles().forEach(file => {
 			if (file instanceof TFile) {
@@ -48,7 +36,7 @@ class TagSelectionModal extends Modal {
 			}
 		});
 
-		// Get folder names
+		// フォルダ名のリストを取得
 		const folderNames = new Set<string>();
 		this.app.vault.getAllLoadedFiles().forEach(file => {
 			if (file instanceof TFolder) {
@@ -56,23 +44,22 @@ class TagSelectionModal extends Modal {
 			}
 		});
 
-		// Classify tags
+		// タグを分類
 		const folderMatchingTags = Array.from(existingTags).filter(tag => folderNames.has(tag));
 		const otherTags = Array.from(existingTags).filter(tag => !folderNames.has(tag));
 
-		// Create tag selection container
+		// タグ選択用のコンテナ
 		const tagContainer = contentEl.createDiv('tag-selection-container');
 		
-		// Display folder-matching tags
+		// フォルダと一致するタグを表示
 		const folderTagsContainer = tagContainer.createDiv('folder-tags');
-		folderTagsContainer.createEl('h3', { text: t('folderMatchingTags') });
+		folderTagsContainer.createEl('h3', { text: 'フォルダと一致するタグ（1つまで選択可能）' });
 		
 		const folderTagListEl = folderTagsContainer.createDiv('tag-list');
 		folderMatchingTags.forEach(tag => {
 			const tagEl = folderTagListEl.createDiv('tag-item');
 			tagEl.createSpan({ text: `#${tag}` });
-			const radio = tagEl.createEl('input', { type: 'radio' });
-			radio.setAttribute('name', 'folderTag');
+			const radio = tagEl.createEl('input', { type: 'radio', name: 'folderTag' });
 			radio.addEventListener('change', () => {
 				if (radio.checked) {
 					this.selectedFolderTag = tag;
@@ -82,9 +69,9 @@ class TagSelectionModal extends Modal {
 			});
 		});
 
-		// Display other tags
+		// その他のタグを表示
 		const otherTagsContainer = tagContainer.createDiv('other-tags');
-		otherTagsContainer.createEl('h3', { text: t('otherTags') });
+		otherTagsContainer.createEl('h3', { text: 'その他のタグ（複数選択可能）' });
 		
 		const otherTagListEl = otherTagsContainer.createDiv('tag-list');
 		otherTags.forEach(tag => {
@@ -100,81 +87,27 @@ class TagSelectionModal extends Modal {
 			});
 		});
 
-		// Create new tag input container
+		// 新規タグ入力用のコンテナ
 		const newTagContainer = tagContainer.createDiv('new-tag');
-		newTagContainer.createEl('h3', { text: t('newTag') });
+		newTagContainer.createEl('h3', { text: '新規タグ' });
 		
 		const inputContainer = newTagContainer.createDiv('input-container');
-		const input = inputContainer.createEl('input', { type: 'text', placeholder: t('enterNewTag') });
-		const addButton = inputContainer.createEl('button', { text: t('add') });
+		const input = inputContainer.createEl('input', { type: 'text', placeholder: '新しいタグを入力' });
+		const addButton = inputContainer.createEl('button', { text: '追加' });
 
-		// Create folder creation option container
-		const createFolderContainer = newTagContainer.createDiv('create-folder-option');
-		const createFolderCheckbox = createFolderContainer.createEl('input', { type: 'checkbox' });
-		createFolderCheckbox.setAttribute('id', 'createFolderCheckbox');
-		createFolderContainer.createEl('label', { text: t('createFolderOption'), attr: { for: 'createFolderCheckbox' } });
-
-		addButton.addEventListener('click', async () => {
-			const newTag = input.value.trim().replace(/^#/, ''); // Remove #
+		addButton.addEventListener('click', () => {
+			const newTag = input.value.trim().replace(/^#/, ''); // #を除去
 			if (newTag && !this.selectedOtherTags.includes(newTag) && !folderMatchingTags.includes(newTag)) {
-				// If folder creation option is selected
-				if (createFolderCheckbox.checked) {
-					try {
-						// Create folder
-						await this.app.vault.createFolder(newTag);
-						// Add as folder tag
-						this.selectedFolderTag = newTag;
-						// Update folder tag radio buttons
-						const folderTagListEl = folderTagsContainer.querySelector('.tag-list');
-						if (folderTagListEl) {
-							const tagEl = folderTagListEl.createDiv('tag-item');
-							tagEl.createSpan({ text: `#${newTag}` });
-							const radio = tagEl.createEl('input', { type: 'radio' });
-							radio.setAttribute('name', 'folderTag');
-							radio.checked = true;
-							radio.addEventListener('change', () => {
-								if (radio.checked) {
-									this.selectedFolderTag = newTag;
-								} else {
-									this.selectedFolderTag = null;
-								}
-							});
-						}
-						new Notice(t('createdTagAndFolder', { tag: newTag, folder: newTag }));
-					} catch (error) {
-						console.error('Error creating folder:', error);
-						new Notice(t('failedToCreateFolder', { folder: newTag }));
-						return;
-					}
-				} else {
-					// Add as other tag
-					this.selectedOtherTags.push(newTag);
-					// Update other tags checkboxes
-					const otherTagListEl = otherTagsContainer.querySelector('.tag-list');
-					if (otherTagListEl) {
-						const tagEl = otherTagListEl.createDiv('tag-item');
-						tagEl.createSpan({ text: `#${newTag}` });
-						const checkbox = tagEl.createEl('input', { type: 'checkbox' });
-						checkbox.checked = true;
-						checkbox.addEventListener('change', () => {
-							if (checkbox.checked) {
-								this.selectedOtherTags.push(newTag);
-							} else {
-								this.selectedOtherTags = this.selectedOtherTags.filter(t => t !== newTag);
-							}
-						});
-					}
-					new Notice(t('addedTag', { tag: newTag }));
-				}
+				this.selectedOtherTags.push(newTag);
 				input.value = '';
+				new Notice(`タグ #${newTag} を追加しました`);
 			}
 		});
 
-		// Submit button
-		const submitButtonContainer = contentEl.createDiv('modal-button-container');
-		const submitButton = submitButtonContainer.createEl('button', { text: t('applyTags') });
+		// 送信ボタン
+		const submitButton = contentEl.createEl('button', { text: 'タグを適用' });
 		submitButton.addEventListener('click', () => {
-			// Combine selected tags
+			// 選択されたタグを結合
 			const selectedTags = [
 				...(this.selectedFolderTag ? [this.selectedFolderTag] : []),
 				...this.selectedOtherTags.filter(tag => tag.trim() !== '')
@@ -254,11 +187,12 @@ export default class MyPlugin extends Plugin {
 				const files = this.app.vault.getAllLoadedFiles();
 				const folders = files.filter((file): file is TFolder => file instanceof TFolder);
 				
-				new Notice(t('foundFolders', { 
-					count: folders.length.toString(),
-					folders: folders.map(folder => folder.path).join('\n')
-				}));
+				// 結果を通知として表示
+				new Notice(`Found ${folders.length} folders in vault:\n${
+					folders.map(folder => folder.path).join('\n')
+				}`);
 				
+				// コンソールにも詳細を出力
 				console.log('Vault folders:', folders);
 			}
 		});
@@ -368,20 +302,19 @@ export default class MyPlugin extends Plugin {
 		// ファイルをタグ名と一致するフォルダに移動する関数
 		const moveFileToTagFolder = async (file: TFile, tag: string) => {
 			try {
+				// タグから#を除去
 				const tagWithoutHash = tag.replace(/^#/, '');
 				
+				// タグ名と一致するフォルダを探す
 				const targetFolder = this.app.vault.getAllLoadedFiles().find(
 					(f): f is TFolder => f instanceof TFolder && f.name === tagWithoutHash
 				);
 
 				if (targetFolder) {
+					// ファイルを移動
 					await this.app.fileManager.renameFile(file, `${targetFolder.path}/${file.name}`);
 					console.log(`Moved file ${file.path} to folder ${targetFolder.path}`);
-					new Notice(t('movedFileToFolder', { tag: tagWithoutHash }));
-
-					this.app.workspace.trigger('file-change', file);
-					this.app.workspace.trigger('graph:refresh');
-					console.log('Graph view refreshed after file movement');
+					new Notice(`ファイルを #${tagWithoutHash} フォルダに移動しました`);
 				} else {
 					console.log(`No folder found matching tag: ${tagWithoutHash}`);
 				}
@@ -397,11 +330,10 @@ export default class MyPlugin extends Plugin {
 				if (file instanceof TFile) {
 					const folder = file.parent;
 					if (folder) {
-						new Notice(t('newFileCreated', { 
-							path: file.path,
-							folder: folder.path 
-						}));
+						// 通知として表示
+						new Notice(`新規ファイル作成: ${file.path}\nフォルダ: ${folder.path}`);
 						
+						// コンソールに詳細を出力
 						console.log('New file created (create event):', {
 							fileName: file.name,
 							filePath: file.path,
@@ -411,26 +343,25 @@ export default class MyPlugin extends Plugin {
 							modificationTime: file.stat.mtime
 						});
 
+						// タグ選択モーダルを表示
 						new TagSelectionModal(this.app, async (selectedTags) => {
+							// 空のタグを除外し、重複を除去
 							const validTags = [...new Set(selectedTags.filter(tag => tag.trim() !== ''))];
 							
+							// フォルダ名のタグを追加（空でない場合のみ）
 							if (folder.name.trim() !== '') {
 								validTags.push(folder.name);
 							}
 
+							// タグを追加
 							if (validTags.length > 0) {
 								await appendTagsToFile(file, validTags);
-								new Notice(t('addedTags', { 
-									tags: validTags.map(tag => `#${tag}`).join(', ') 
-								}));
+								new Notice(`タグ ${validTags.map(tag => `#${tag}`).join(', ')} を追加しました`);
 
+								// 各タグに対応するフォルダにファイルを移動
 								for (const tag of validTags) {
 									await moveFileToTagFolder(file, tag);
 								}
-
-								this.app.workspace.trigger('file-change', file);
-								this.app.workspace.trigger('graph:refresh');
-								console.log('Graph view refreshed after tag operations');
 							}
 						}).open();
 					}
