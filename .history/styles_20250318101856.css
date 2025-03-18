@@ -1,0 +1,8 @@
+/* プラグインのスタイル定義 */
+.folder-tag-plugin-notice {
+    color: var(--text-normal);
+    background-color: var(--background-secondary);
+    border-radius: 4px;
+    padding: 8px;
+    margin: 4px 0;
+} 

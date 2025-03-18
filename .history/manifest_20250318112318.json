@@ -9,9 +9,5 @@
 	"isDesktopOnly": false,
 	"fundingUrl": {
 		"GitHub Sponsor": "https://github.com/sponsors/yourusername"
-	},
-	"i18n": {
-		"en": "i18n/en.json",
-		"ja": "i18n/ja.json"
 	}
 } 
