@@ -16234,3 +16234,12 @@
 }
 ]
 
+[
+  {
+    "id": "folder-tag-plugin",
+    "name": "Folder Tag Plugin",
+    "author": "leo10969",
+    "description": "Automatically manages tags based on folder structure and provides intuitive tag management functionality.",
+    "repo": "leo10969/Obsidian-Folder-Tag-Plugin"
+  }
+] 
