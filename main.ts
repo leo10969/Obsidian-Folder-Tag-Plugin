@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFolder, TFile } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFolder, TFile, WorkspaceLeaf } from 'obsidian';
 
 // Remember to rename these classes and interfaces!
 
@@ -22,7 +22,7 @@ function t(key: string, params: Record<string, string> = {}): string {
 	return text;
 }
 
-// タグ選択モーダル
+// Tag selection modal
 class TagSelectionModal extends Modal {
 	selectedFolderTag: string | null = null;
 	selectedOtherTags: string[] = [];
@@ -191,11 +191,52 @@ class TagSelectionModal extends Modal {
 	}
 }
 
-export default class MyPlugin extends Plugin {
+export default class FolderTagPlugin extends Plugin {
 	settings: MyPluginSettings;
 
 	async onload() {
+		// Delay plugin initialization
+		setTimeout(() => {
+			this.initializePlugin();
+		}, 2000); // Initialize after 2 seconds
+	}
+
+	private async initializePlugin() {
+		// Load settings
 		await this.loadSettings();
+
+		// Add commands
+		this.addCommand({
+			id: 'add-folder-tag',
+			name: 'Add Folder Tag',
+			callback: () => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (activeFile) {
+					this.addFolderTag(activeFile);
+				}
+			}
+		});
+
+		// Monitor file creation events
+		this.registerEvent(
+			this.app.vault.on('create', (file: TFile) => {
+				if (file instanceof TFile) {
+					this.handleNewFile(file);
+				}
+			})
+		);
+
+		// Monitor file move events
+		this.registerEvent(
+			this.app.vault.on('rename', (file: TFile, oldPath: string) => {
+				if (file instanceof TFile) {
+					this.handleFileMove(file, oldPath);
+				}
+			})
+		);
+
+		// Add settings tab
+		this.addSettingTab(new SampleSettingTab(this.app, this));
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
@@ -263,9 +304,6 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
 		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
@@ -275,33 +313,33 @@ export default class MyPlugin extends Plugin {
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 
-		// ファイルにタグを追加する関数
+		// File tagging function
 		const appendTagsToFile = async (file: TFile, tags: string[]) => {
 			try {
-				// ファイルの内容を読み取る
+				// Read file content
 				const content = await this.app.vault.read(file);
 				
-				// 新しいタグを追加（#を除いて比較）
+				// Add new tags (excluding #)
 				const newTags = tags.filter(tag => {
-					// タグの#を除去して比較
+					// Remove # for comparison
 					const tagWithoutHash = tag.replace(/^#/, '');
 					return !content.match(new RegExp(`#${tagWithoutHash}\\b`));
-				}).map(tag => tag.replace(/^#/, '')); // すべてのタグから#を除去
+				}).map(tag => tag.replace(/^#/, '')); // Remove # from all tags
 				
 				if (newTags.length === 0) {
 					console.log('No new tags to add');
 					return;
 				}
 
-				// タグを追加（ファイルの先頭に追加）
+				// Add tags (prepend to file content)
 				const newContent = `${newTags.map(tag => `#${tag}`).join(' ')}\n\n${content}`;
 				
-				// ファイルを更新
+				// Update file
 				await this.app.vault.modify(file, newContent);
 				
 				console.log(`Added tags ${newTags.map(tag => `#${tag}`).join(', ')} to file: ${file.path}`);
 
-				// グラフビューをリロード
+				// Refresh graph view
 				this.app.workspace.trigger('file-change', file);
 				this.app.workspace.trigger('graph:refresh');
 				
@@ -311,7 +349,7 @@ export default class MyPlugin extends Plugin {
 			}
 		};
 
-		// フォルダ内の全ファイルにタグを追加する関数
+		// Folder tagging function
 		const addFolderTagsToAllFiles = async (folder: TFolder) => {
 			const files = folder.children.filter((file): file is TFile => file instanceof TFile);
 			let processedCount = 0;
@@ -334,7 +372,7 @@ export default class MyPlugin extends Plugin {
 			return { processedCount, skippedCount };
 		};
 
-		// 現在のファイルの親フォルダにタグを追加するコマンド
+		// Command to add tag to parent folder of current file
 		this.addCommand({
 			id: 'add-folder-tag-to-current-file',
 			name: 'Add parent folder tag to current file',
@@ -349,7 +387,7 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 
-		// 現在のフォルダ内の全ファイルにタグを追加するコマンド
+		// Command to add tag to all files in current folder
 		this.addCommand({
 			id: 'add-folder-tags-to-all-files',
 			name: 'Add folder tag to all files in current folder',
@@ -365,7 +403,7 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 
-		// ファイルをタグ名と一致するフォルダに移動する関数
+		// File moving function
 		const moveFileToTagFolder = async (file: TFile, tag: string) => {
 			try {
 				const tagWithoutHash = tag.replace(/^#/, '');
@@ -390,7 +428,7 @@ export default class MyPlugin extends Plugin {
 			}
 		};
 
-		// ファイル作成イベントのハンドラーを追加
+		// File creation event handler
 		this.registerEvent(
 			this.app.vault.on('create', (file) => {
 				console.log('Vault create event triggered:', file.path);
@@ -438,14 +476,14 @@ export default class MyPlugin extends Plugin {
 			})
 		);
 
-		// ファイルオープンイベントのハンドラーを追加
+		// File open event handler
 		this.registerEvent(
 			this.app.workspace.on('file-open', (file) => {
 				console.log('Workspace file-open event triggered:', file?.path);
 				if (file instanceof TFile) {
 					const folder = file.parent;
 					if (folder) {
-						// コンソールに詳細を出力
+						// Output details to console
 						console.log('File opened:', {
 							fileName: file.name,
 							filePath: file.path,
@@ -458,6 +496,86 @@ export default class MyPlugin extends Plugin {
 				}
 			})
 		);
+	}
+
+	private getFolderTag(filePath: string): string | null {
+		const pathParts = filePath.split('/');
+		if (pathParts.length > 1) {
+			return pathParts[pathParts.length - 2];
+		}
+		return null;
+	}
+
+	private async addTagToFile(file: TFile, tag: string) {
+		const content = await this.app.vault.read(file);
+		const frontmatter = this.getFrontmatter(content);
+		const tags = this.getTags(frontmatter);
+
+		if (!tags.includes(tag)) {
+			tags.push(tag);
+			const newContent = this.updateFrontmatter(content, tags);
+			await this.app.vault.modify(file, newContent);
+		}
+	}
+
+	private async removeTagFromFile(file: TFile, tag: string) {
+		const content = await this.app.vault.read(file);
+		const frontmatter = this.getFrontmatter(content);
+		const tags = this.getTags(frontmatter);
+
+		const index = tags.indexOf(tag);
+		if (index > -1) {
+			tags.splice(index, 1);
+			const newContent = this.updateFrontmatter(content, tags);
+			await this.app.vault.modify(file, newContent);
+		}
+	}
+
+	private getFrontmatter(content: string): string {
+		const match = content.match(/^---\n([\s\S]*?)\n---/);
+		return match ? match[1] : '';
+	}
+
+	private getTags(frontmatter: string): string[] {
+		const tagsMatch = frontmatter.match(/tags:\s*\[(.*?)\]/);
+		if (!tagsMatch) return [];
+		return tagsMatch[1].split(',').map(tag => tag.trim());
+	}
+
+	private updateFrontmatter(content: string, tags: string[]): string {
+		const frontmatter = this.getFrontmatter(content);
+		const tagsLine = `tags: [${tags.join(', ')}]`;
+		
+		if (frontmatter) {
+			const updatedFrontmatter = frontmatter.replace(/tags:.*/, tagsLine);
+			return content.replace(/^---\n[\s\S]*?\n---/, `---\n${updatedFrontmatter}\n---`);
+		} else {
+			return `---\n${tagsLine}\n---\n${content}`;
+		}
+	}
+
+	private async addFolderTag(file: TFile) {
+		const folderTag = this.getFolderTag(file.path);
+		if (folderTag) {
+			await this.addTagToFile(file, folderTag);
+		}
+	}
+
+	private async handleNewFile(file: TFile) {
+		const folderTag = this.getFolderTag(file.path);
+		if (folderTag) {
+			await this.addTagToFile(file, folderTag);
+		}
+	}
+
+	private async handleFileMove(file: TFile, oldPath: string) {
+		const oldFolderTag = this.getFolderTag(oldPath);
+		const newFolderTag = this.getFolderTag(file.path);
+		
+		if (oldFolderTag && newFolderTag && oldFolderTag !== newFolderTag) {
+			await this.removeTagFromFile(file, oldFolderTag);
+			await this.addTagToFile(file, newFolderTag);
+		}
 	}
 
 	onunload() {
@@ -490,9 +608,9 @@ class SampleModal extends Modal {
 }
 
 class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+	plugin: FolderTagPlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: FolderTagPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
