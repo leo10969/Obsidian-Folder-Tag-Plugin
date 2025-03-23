@@ -57,6 +57,10 @@ npm run dev
 
 MIT License
 
+## Note for GitHub Actions
+
+This line is added to trigger GitHub Actions for re-validation.
+
 ---
 
 # Folder Tag Plugin (English)
