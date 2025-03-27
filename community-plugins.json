@@ -1,4 +1,5 @@
 [
+<<<<<<< HEAD
     {
         "id": "nldates-obsidian",
         "name": "Natural Language Dates",
@@ -16235,6 +16236,8 @@
 ]
 
 [
+=======
+>>>>>>> origin/master
   {
     "id": "folder-tag-plugin",
     "name": "Folder Tag Plugin",

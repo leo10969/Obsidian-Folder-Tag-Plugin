@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 /.history
 
+=======
+>>>>>>> origin/master
 # vscode
 .vscode 
 
@@ -17,7 +20,11 @@ node_modules
 main.js
 
 # Exclude sourcemaps
+<<<<<<< HEAD
 *.js.map
+=======
+*.map
+>>>>>>> origin/master
 
 # obsidian
 data.json
