@@ -212,6 +212,10 @@ export default class FolderTagPlugin extends Plugin {
 			callback: () => {
 				const activeFile = this.app.workspace.getActiveFile();
 				if (activeFile) {
+					if (activeFile.extension === 'pdf') {
+						new Notice(t('pdfNotSupported'));
+						return;
+					}
 					this.addFolderTag(activeFile);
 				}
 			}
@@ -562,6 +566,10 @@ export default class FolderTagPlugin extends Plugin {
 	}
 
 	private async handleNewFile(file: TFile) {
+		// Skip PDF files
+		if (file.extension === 'pdf') {
+			return;
+		}
 		const folderTag = this.getFolderTag(file.path);
 		if (folderTag) {
 			await this.addTagToFile(file, folderTag);
@@ -569,11 +577,17 @@ export default class FolderTagPlugin extends Plugin {
 	}
 
 	private async handleFileMove(file: TFile, oldPath: string) {
+		// Skip PDF files
+		if (file.extension === 'pdf') {
+			return;
+		}
 		const oldFolderTag = this.getFolderTag(oldPath);
 		const newFolderTag = this.getFolderTag(file.path);
-		
-		if (oldFolderTag && newFolderTag && oldFolderTag !== newFolderTag) {
+
+		if (oldFolderTag && oldFolderTag !== newFolderTag) {
 			await this.removeTagFromFile(file, oldFolderTag);
+		}
+		if (newFolderTag) {
 			await this.addTagToFile(file, newFolderTag);
 		}
 	}

@@ -15,5 +15,6 @@
     "noFileOpen": "現在開いているファイルがありません",
     "noFileInFolder": "フォルダ内に開いているファイルがありません",
     "addedFolderTags": "{processed} 個のファイルにフォルダタグを追加しました（{skipped} 個のファイルは既にタグを持っています）",
-    "foundFolders": "ボルト内に {count} 個のフォルダが見つかりました:\n{folders}"
+    "foundFolders": "ボルト内に {count} 個のフォルダが見つかりました:\n{folders}",
+    "pdfNotSupported": "PDFファイルはフォルダタグ機能に対応していません"
 } 
