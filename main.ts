@@ -105,7 +105,10 @@ class TagSelectionModal extends Modal {
 		newTagContainer.createEl('h3', { text: t('newTag') });
 		
 		const inputContainer = newTagContainer.createDiv('input-container');
-		const input = inputContainer.createEl('input', { type: 'text', placeholder: t('enterNewTag') });
+		const input = inputContainer.createEl('input', { 
+			type: 'text',
+			attr: { placeholder: t('enterNewTag') }
+		});
 		const addButton = inputContainer.createEl('button', { text: t('add') });
 
 		// Create folder creation option container
